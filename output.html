@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>LLM 計算ベンチマーク結果</title>
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'], ['\\(','\\)']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  body { font-family: "Helvetica Neue", Arial, sans-serif; max-width: 960px;
+          margin: 40px auto; padding: 0 20px; color: #222; line-height: 1.7; }
+  h1   { border-bottom: 2px solid #444; padding-bottom: 8px; }
+  h2   { margin-top: 2em; background: #f0f4f8; padding: 8px 12px;
+          border-left: 4px solid #4a90d9; }
+  h3   { color: #4a90d9; margin-top: 1.4em; }
+  .meta  { color: #666; font-size: .9em; margin-bottom: 1.5em; }
+  .prompt { background: #fafafa; border: 1px solid #ddd; border-radius: 4px;
+             padding: 12px 16px; white-space: pre-wrap; font-size: .95em; }
+  .answer { background: #fff8e1; border: 1px solid #ffe082; border-radius: 4px;
+             padding: 12px 16px; white-space: pre-wrap; font-size: .93em; }
+  .correct { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 4px;
+              padding: 12px 16px; font-size: .95em; }
+  .verdict-ok  { color: #2e7d32; font-weight: bold; }
+  .verdict-ng  { color: #c62828; font-weight: bold; }
+  table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+  th, td { border: 1px solid #ccc; padding: 10px 14px; text-align: center; }
+  th { background: #4a90d9; color: #fff; }
+  tr:nth-child(even) { background: #f5f5f5; }
+  td.title { text-align: left; }
+  .ok { color: #2e7d32; font-size: 1.2em; }
+  .ng { color: #c62828; font-size: 1.2em; }
+  .score { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>LLM 計算ベンチマーク結果</h1>
+<p class="meta">
+  ツールなし: <code>claude-haiku-4-5</code> &nbsp;/&nbsp;
+  ツールあり: <code>claude-haiku-4-5</code> &nbsp;/&nbsp;
+  判定: <code>claude-opus-4-6</code>
+</p>
+
+<h2>問題 1: 実数15個の算術平均 <small>[基本統計]</small></h2>
+<h3>プロンプト</h3>
+<div class="prompt">次の15個の数値の算術平均を小数点以下2桁まで求めてください。
+
+3.7, 8.2, 1.5, 9.4, 2.8, 7.1, 4.6, 6.3, 5.9, 0.5, 7.8, 3.2, 6.1, 4.9, 8.4</div>
+<h3>正解</h3>
+<div class="correct">5.36<br><small>合計80.4 ÷ 15 = 5.36</small></div>
+
+<h3>モード1: ツールなし</h3>
+<div class="answer"># 算術平均の計算
+
+## ステップ1: 全ての数値を合計
+
+3.7 + 8.2 + 1.5 + 9.4 + 2.8 + 7.1 + 4.6 + 6.3 + 5.9 + 0.5 + 7.8 + 3.2 + 6.1 + 4.9 + 8.4
+
+= **80.4**
+
+## ステップ2: 合計を個数で割る
+
+80.4 ÷ 15 = 5.36
+
+---
+
+**答え：5.36**</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h3>モード2: Code Execution Tool あり</h3>
+<div class="answer">[Claude]: 15個の数値の算術平均を計算します。
+[実行コード]:
+python3 &lt;&lt; &#x27;EOF&#x27;
+numbers = [3.7, 8.2, 1.5, 9.4, 2.8, 7.1, 4.6, 6.3, 5.9, 0.5, 7.8, 3.2, 6.1, 4.9, 8.4]
+
+# 合計を計算
+total = sum(numbers)
+print(f&quot;合計: {total}&quot;)
+
+# 個数を確認
+count = len(numbers)
+print(f&quot;個数: {count}&quot;)
+
+# 算術平均を計算
+mean = total / count
+print(f&quot;算術平均: {mean}&quot;)
+
+# 小数点以下2桁に丸める
+mean_rounded = round(mean, 2)
+print(f&quot;小数点以下2桁に丸めた値: {mean_rounded}&quot;)
+EOF
+
+[stdout]: 合計: 80.4
+個数: 15
+算術平均: 5.36
+小数点以下2桁に丸めた値: 5.36
+[Claude]: **答え: 5.36**
+
+計算内容：
+- 15個の数値の合計：80.4
+- 算術平均：80.4 ÷ 15 = 5.36
+
+小数点以下2桁で表すと、**5.36** です。</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h2>問題 2: 標本標準偏差（8個） <small>[基本統計]</small></h2>
+<h3>プロンプト</h3>
+<div class="prompt">次の8つの測定値の標本標準偏差（不偏標準偏差、分母 n−1）を
+小数点以下3桁まで求めてください。
+
+12.3, 8.7, 15.1, 9.4, 11.8, 14.2, 10.5, 13.6</div>
+<h3>正解</h3>
+<div class="correct">2.300<br><small>平均11.95, 偏差二乗和37.02, 分散5.2886, SD=√5.2886≈2.300</small></div>
+
+<h3>モード1: ツールなし</h3>
+<div class="answer"># 標本標準偏差の計算
+
+## 1. 平均値を求める
+$$\bar{x} = \frac{12.3 + 8.7 + 15.1 + 9.4 + 11.8 + 14.2 + 10.5 + 13.6}{8}$$
+$$= \frac{95.6}{8} = 11.95$$
+
+## 2. 偏差平方を計算する
+
+| 値 | 偏差 (x - 11.95) | 偏差平方 |
+|---|---|---|
+| 12.3 | 0.35 | 0.1225 |
+| 8.7 | -3.25 | 10.5625 |
+| 15.1 | 3.15 | 9.9225 |
+| 9.4 | -2.55 | 6.5025 |
+| 11.8 | -0.15 | 0.0225 |
+| 14.2 | 2.25 | 5.0625 |
+| 10.5 | -1.45 | 2.1025 |
+| 13.6 | 1.65 | 2.7225 |
+
+## 3. 偏差平方の合計
+$$\sum(x_i - \bar{x})^2 = 37.12$$
+
+## 4. 標本標準偏差を計算
+$$s = \sqrt{\frac{37.12}{8-1}} = \sqrt{\frac{37.12}{7}} = \sqrt{5.302857...}$$
+$$= 2.302795...$$
+
+## 答え
+**2.303**</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h3>モード2: Code Execution Tool あり</h3>
+<div class="answer">[Claude]: 8つの測定値の標本標準偏差（不偏標準偏差）を計算します。
+[実行コード]:
+python3 &lt;&lt; &#x27;EOF&#x27;
+import numpy as np
+
+# 測定値
+data = [12.3, 8.7, 15.1, 9.4, 11.8, 14.2, 10.5, 13.6]
+
+# 不偏標準偏差（分母 n-1）を計算
+sample_std = np.std(data, ddof=1)
+
+print(f&quot;測定値: {data}&quot;)
+print(f&quot;n = {len(data)}&quot;)
+print(f&quot;平均: {np.mean(data):.10f}&quot;)
+print(f&quot;不偏標準偏差（ddof=1）: {sample_std:.10f}&quot;)
+print(f&quot;小数点以下3桁: {sample_std:.3f}&quot;)
+
+# 手動計算で検証
+mean = np.mean(data)
+variance = sum((x - mean)**2 for x in data) / (len(data) - 1)
+std_manual = np.sqrt(variance)
+print(f&quot;\n検証（手動計算）:&quot;)
+print(f&quot;分散（分母n-1）: {variance:.10f}&quot;)
+print(f&quot;標準偏差: {std_manual:.10f}&quot;)
+EOF
+
+[stdout]: 測定値: [12.3, 8.7, 15.1, 9.4, 11.8, 14.2, 10.5, 13.6]
+n = 8
+平均: 11.9500000000
+不偏標準偏差（ddof=1）: 2.2996894200
+小数点以下3桁: 2.300
+
+検証（手動計算）:
+分散（分母n-1）: 5.2885714286
+標準偏差: 2.2996894200
+[Claude]: ## 答え
+
+**標本標準偏差（不偏標準偏差）= 2.300**
+
+### 計算過程：
+- **測定値**：12.3, 8.7, 15.1, 9.4, 11.8, 14.2, 10.5, 13.6
+- **サンプル数**：n = 8
+- **平均**：11.95
+- **分散**（分母 n-1）：5.2886
+- **標本標準偏差**：√5.2886 ≈ 2.300</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h2>問題 3: 対応なし2標本t検定（有意差なし） <small>[t検定]</small></h2>
+<h3>プロンプト</h3>
+<div class="prompt">ある薬の効果を調べるため、投与群と対照群でそれぞれ10人ずつ測定しました。
+対応のない2標本t検定（等分散を仮定）を行い、
+t統計量・自由度・p値（両側）を求め、有意水準5%で判定してください。
+
+投与群: 22.4, 18.7, 21.3, 24.8, 19.5, 23.1, 20.6, 22.9, 18.2, 21.7
+対照群: 20.1, 23.5, 19.8, 22.4, 21.7, 20.3, 23.9, 21.1, 22.6, 20.8</div>
+<h3>正解</h3>
+<div class="correct">t≈-0.373, df=18, p≈0.714, 有意差なし<br><small>平均差-0.30, pooled SD≈1.797, SE≈0.804, t=-0.373, p≈0.714</small></div>
+
+<h3>モード1: ツールなし</h3>
+<div class="answer"># 対応のない2標本t検定の実施
+
+## 1. 基本統計量の計算
+
+**投与群:**
+- 平均: $\bar{x}_1 = \frac{22.4+18.7+21.3+24.8+19.5+23.1+20.6+22.9+18.2+21.7}{10} = 21.32$
+- 分散: $s_1^2 = \frac{\sum(x_i-\bar{x}_1)^2}{n_1-1} = 5.343$
+
+**対照群:**
+- 平均: $\bar{x}_2 = \frac{20.1+23.5+19.8+22.4+21.7+20.3+23.9+21.1+22.6+20.8}{10} = 21.62$
+- 分散: $s_2^2 = \frac{\sum(x_i-\bar{x}_2)^2}{n_2-1} = 1.818$
+
+## 2. 等分散の仮定下での合併分散
+
+$$s_p^2 = \frac{(n_1-1)s_1^2 + (n_2-1)s_2^2}{n_1+n_2-2} = \frac{9×5.343 + 9×1.818}{18} = 3.581$$
+
+$$s_p = \sqrt{3.581} = 1.892$$
+
+## 3. t統計量の計算
+
+$$t = \frac{\bar{x}_1 - \bar{x}_2}{s_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}} = \frac{21.32 - 21.62}{1.892\sqrt{\frac{1}{10}+\frac{1}{10}}}$$
+
+$$t = \frac{-0.30}{1.892×0.4472} = \frac{-0.30}{0.846} = -0.355$$
+
+## 4. 自由度
+
+$$df = n_1 + n_2 - 2 = 10 + 10 - 2 = 18$$
+
+## 5. p値（両側）
+
+自由度18のt分布において、$|t| = 0.355$に対応するp値：
+
+$$p\text{値} ≈ 0.726$$
+
+## 結論
+
+| 項目 | 値 |
+|------|-----|
+| **t統計量** | **-0.355** |
+| **自由度** | **18** |
+| **p値（両側）** | **0.726** |
+
+**有意水準5%での判定：**
+
+p値 (0.726) &gt; 有意水準 (0.05)
+
+**→ 帰無仮説を棄却しない**
+
+投与群と対照群の平均値に統計的に有意な差は認められません。</div>
+<p class="verdict-ng">判定: ✗ 不正解</p>
+
+<h3>モード2: Code Execution Tool あり</h3>
+<div class="answer">[Claude]: 対応のない2標本t検定を実施します。Pythonで計算を行います。
+[実行コード]:
+python3 &lt;&lt; &#x27;EOF&#x27;
+import numpy as np
+from scipy import stats
+import pandas as pd
+
+# データ
+treatment = np.array([22.4, 18.7, 21.3, 24.8, 19.5, 23.1, 20.6, 22.9, 18.2, 21.7])
+control = np.array([20.1, 23.5, 19.8, 22.4, 21.7, 20.3, 23.9, 21.1, 22.6, 20.8])
+
+print(&quot;=&quot;*60)
+print(&quot;対応のない2標本t検定（等分散を仮定）&quot;)
+print(&quot;=&quot;*60)
+
+# 基本統計量
+print(&quot;\n【基本統計量】&quot;)
+print(f&quot;\n投与群 (n={len(treatment)}):&quot;)
+print(f&quot;  平均値: {np.mean(treatment):.4f}&quot;)
+print(f&quot;  標準偏差: {np.std(treatment, ddof=1):.4f}&quot;)
+print(f&quot;  分散: {np.var(treatment, ddof=1):.4f}&quot;)
+
+print(f&quot;\n対照群 (n={len(control)}):&quot;)
+print(f&quot;  平均値: {np.mean(control):.4f}&quot;)
+print(f&quot;  標準偏差: {np.std(control, ddof=1):.4f}&quot;)
+print(f&quot;  分散: {np.var(control, ddof=1):.4f}&quot;)
+
+# Leveneの検定（等分散性の確認）
+print(&quot;\n【等分散性の確認】&quot;)
+stat_levene, p_levene = stats.levene(treatment, control)
+print(f&quot;Leveneの検定:&quot;)
+print(f&quot;  検定統計量: {stat_levene:.4f}&quot;)
+print(f&quot;  p値: {p_levene:.4f}&quot;)
+if p_levene &gt; 0.05:
+    print(f&quot;  結論: 等分散と仮定して良い (p &gt; 0.05)&quot;)
+else:
+    print(f&quot;  結論: 等分散の仮定に疑問がある (p &lt; 0.05)&quot;)
+
+# 対応のない2標本t検定（等分散を仮定、両側）
+print(&quot;\n【対応のない2標本t検定】&quot;)
+print(&quot;帰無仮説: 投与群と対照群の平均値は等しい&quot;)
+print(&quot;対立仮説: 投与群と対照群の平均値は異なる（両側）&quot;)
+
+# scipy.stats.ttest_ind でequal_var=Trueで等分散を仮定
+t_stat, p_value = stats.ttest_ind(treatment, control, equal_var=True)
+
+# 自由度
+n1 = len(treatment)
+n2 = len(control)
+df = n1 + n2 - 2
+
+print(f&quot;\nt統計量: {t_stat:.4f}&quot;)
+print(f&quot;自由度: {df}&quot;)
+print(f&quot;p値（両側）: {p_value:.4f}&quot;)
+
+# 有意性判定
+alpha = 0.05
+print(f&quot;\n【有意水準α = {alpha}での判定】&quot;)
+if p_value &lt; alpha:
+    print(f&quot;p値 ({p_value:.4f}) &lt; α ({alpha})&quot;)
+    print(&quot;結論: 有意水準5%で有意差あり&quot;)
+    print(&quot;      帰無仮説を棄却し、投与群と対照群の平均値に統計的に&quot;)
+    print(&quot;      有意な差があると判定されます。&quot;)
+else:
+    print(f&quot;p値 ({p_value:.4f}) ≥ α ({alpha})&quot;)
+    print(&quot;結論: 有意水準5%で有意差なし&quot;)
+    print(&quot;      帰無仮説を棄却できず、投与群と対照群の平均値に&quot;)
+    print(&quot;      統計的に有意な差があるとは言えません。&quot;)
+
+# 信頼区間の計算（参考）
+print(&quot;\n【参考：95%信頼区間】&quot;)
+mean_diff = np.mean(treatment) - np.mean(control)
+pooled_std = np.sqrt(((n1-1)*np.var(treatment, ddof=1) + (n2-1)*np.var(control, ddof=1)) / (n1+n2-2))
+se_diff = pooled_std * np.sqrt(1/n1 + 1/n2)
+t_critical = stats.t.ppf(1 - alpha/2, df)
+ci_lower = mean_diff - t_critical * se_diff
+ci_upper = mean_diff + t_critical * se_diff
+print(f&quot;平均値の差: {mean_diff:.4f}&quot;)
+print(f&quot;標準誤差: {se_diff:.4f}&quot;)
+print(f&quot;95%信頼区間: [{ci_lower:.4f}, {ci_upper:.4f}]&quot;)
+
+print(&quot;\n&quot; + &quot;=&quot;*60)
+print(&quot;【検定結果のまとめ】&quot;)
+print(&quot;=&quot;*60)
+print(f&quot;t統計量 = {t_stat:.4f}&quot;)
+print(f&quot;自由度 = {df}&quot;)
+print(f&quot;p値（両側） = {p_value:.4f}&quot;)
+print(f&quot;有意水準α = 0.05&quot;)
+print(f&quot;判定: {&#x27;有意差あり&#x27; if p_value &lt; alpha else &#x27;有意差なし&#x27;}&quot;)
+print(&quot;=&quot;*60)
+
+EOF
+
+[stdout]: ============================================================
+対応のない2標本t検定（等分散を仮定）
+============================================================
+
+【基本統計量】
+
+投与群 (n=10):
+  平均値: 21.3200
+  標準偏差: 2.0954
+  分散: 4.3907
+
+対照群 (n=10):
+  平均値: 21.6200
+  標準偏差: 1.4382
+  分散: 2.0684
+
+【等分散性の確認】
+Leveneの検定:
+  検定統計量: 1.1213
+  p値: 0.3036
+  結論: 等分散と仮定して良い (p &gt; 0.05)
+
+【対応のない2標本t検定】
+帰無仮説: 投与群と対照群の平均値は等しい
+対立仮説: 投与群と対照群の平均値は異なる（両側）
+
+t統計量: -0.3733
+自由度: 18
+p値（両側）: 0.7133
+
+【有意水準α = 0.05での判定】
+p値 (0.7133) ≥ α (0.05)
+結論: 有意水準5%で有意差なし
+      帰無仮説を棄却できず、投与群と対照群の平均値に
+      統計的に有意な差があるとは言えません。
+
+【参考：95%信頼区間】
+平均値の差: -0.3000
+標準誤差: 0.8037
+95%信頼区間: [-1.9885, 1.3885]
+
+============================================================
+【検定結果のまとめ】
+============================================================
+t統計量 = -0.3733
+自由度 = 18
+p値（両側） = 0.7133
+有意水準α = 0.05
+判定: 有意差なし
+============================================================
+[Claude]: ## 結果
+
+対応のない2標本t検定の結果は以下の通りです：
+
+### **検定統計量**
+- **t統計量 = -0.3733**
+
+### **自由度**
+- **df = 18** （n₁ + n₂ - 2 = 10 + 10 - 2）
+
+### **p値（両側）**
+- **p値 = 0.7133**
+
+### **有意水準5%での判定**
+
+| 項目 | 値 |
+|-----|-----|
+| p値 | 0.7133 |
+| 有意水準α | 0.05 |
+| 比較結果 | p値 &gt; α |
+| **判定** | **有意差なし** |
+
+---
+
+## 結論
+
+**p値（0.7133）が有意水準（0.05）よりも十分大きいため、帰無仮説を棄却できません。**
+
+投与群（平均21.32）と対照群（平均21.62）の平均値の差は、統計的に有意ではないと判定されます。つまり、この薬の投与による効果は有意水準5%では検出されませんでした。
+
+### 補足情報
+- 平均値の差：-0.3000（投与群が対照群より平均0.3低い）
+- 95%信頼区間：[-1.9885, 1.3885]
+- 等分散性の確認（Leveneの検定）：p=0.3036で等分散の仮定は妥当</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h2>問題 4: 対応あり1標本t検定（有意差あり） <small>[t検定]</small></h2>
+<h3>プロンプト</h3>
+<div class="prompt">ダイエットプログラムの前後で体重（kg）を測定しました。
+対応のあるt検定（前後差の1標本t検定）を行い、
+t統計量・自由度・p値（両側）を求め、有意水準5%で判定してください。
+
+介入前: 85.2, 78.4, 91.3, 82.7, 88.1, 76.5, 90.2, 83.6, 87.4, 79.8
+介入後: 79.3, 74.1, 87.8, 79.5, 84.2, 74.3, 86.7, 77.8, 84.1, 77.2</div>
+<h3>正解</h3>
+<div class="correct">t≈9.88, df=9, p&lt;0.0001, 有意差あり<br><small>差の平均3.82, 差のSD≈1.223, SE≈0.387, t=9.88, p&lt;0.0001</small></div>
+
+<h3>モード1: ツールなし</h3>
+<div class="answer"># 対応のあるt検定の実施
+
+## 1. 前後の差を計算
+
+| 対象 | 介入前 | 介入後 | 差(前-後) |
+|------|-------|-------|---------|
+| 1 | 85.2 | 79.3 | 5.9 |
+| 2 | 78.4 | 74.1 | 4.3 |
+| 3 | 91.3 | 87.8 | 3.5 |
+| 4 | 82.7 | 79.5 | 3.2 |
+| 5 | 88.1 | 84.2 | 3.9 |
+| 6 | 76.5 | 74.3 | 2.2 |
+| 7 | 90.2 | 86.7 | 3.5 |
+| 8 | 83.6 | 77.8 | 5.8 |
+| 9 | 87.4 | 84.1 | 3.3 |
+| 10 | 79.8 | 77.2 | 2.6 |
+
+## 2. 基本統計量の計算
+
+- **標本数**: n = 10
+- **差の合計**: Σd = 38.2
+- **差の平均**: d̄ = 38.2 ÷ 10 = **3.82**
+- **差の分散**: s² = Σ(d - d̄)² ÷ (n-1) = 2.1289
+- **差の標準偏差**: s = **1.4587**
+
+## 3. t統計量の計算
+
+$$t = \frac{\bar{d}}{s/\sqrt{n}} = \frac{3.82}{1.4587/\sqrt{10}} = \frac{3.82}{0.4613} = \mathbf{8.278}$$
+
+## 4. 結果
+
+| 項目 | 値 |
+|------|-----|
+| **t統計量** | **8.278** |
+| **自由度** | **9** |
+| **p値（両側）** | **&lt;0.0001** (正確には p &lt; 0.00008) |
+
+## 5. 有意性の判定
+
+- **有意水準**: α = 0.05
+- **判定**: p値 &lt; 0.05 → **統計的に有意**
+
+✅ **結論**: ダイエットプログラムにより、体重は有意に減少しました（平均3.82kg減）。</div>
+<p class="verdict-ng">判定: ✗ 不正解</p>
+
+<h3>モード2: Code Execution Tool あり</h3>
+<div class="answer">[Claude]: ダイエットプログラムの前後で体重測定データに対する対応のあるt検定を行います。
+[実行コード]:
+python3 &lt;&lt; &#x27;EOF&#x27;
+import numpy as np
+from scipy import stats
+import pandas as pd
+
+# データ
+before = np.array([85.2, 78.4, 91.3, 82.7, 88.1, 76.5, 90.2, 83.6, 87.4, 79.8])
+after = np.array([79.3, 74.1, 87.8, 79.5, 84.2, 74.3, 86.7, 77.8, 84.1, 77.2])
+
+# 前後差を計算
+differences = before - after
+
+print(&quot;=&quot;*60)
+print(&quot;対応のあるt検定（前後差の1標本t検定）&quot;)
+print(&quot;=&quot;*60)
+print(&quot;\n【データ】&quot;)
+print(f&quot;介入前: {before}&quot;)
+print(f&quot;介入後: {after}&quot;)
+print(f&quot;\n前後差（前 - 後）: {differences}&quot;)
+
+# 記述統計
+print(&quot;\n【記述統計】&quot;)
+print(f&quot;サンプルサイズ: n = {len(differences)}&quot;)
+print(f&quot;前後差の平均: {np.mean(differences):.4f} kg&quot;)
+print(f&quot;前後差の標準偏差: {np.std(differences, ddof=1):.4f} kg&quot;)
+print(f&quot;前後差の標準誤差: {np.std(differences, ddof=1) / np.sqrt(len(differences)):.4f} kg&quot;)
+
+# t検定（両側）
+t_stat, p_value = stats.ttest_1samp(differences, 0)
+
+# 自由度
+df = len(differences) - 1
+
+print(&quot;\n【t検定の結果】&quot;)
+print(f&quot;帰無仮説: 平均前後差 = 0（介入前後で体重に変化がない）&quot;)
+print(f&quot;対立仮説: 平均前後差 ≠ 0（介入前後で体重に変化がある）&quot;)
+print(f&quot;\nt統計量: {t_stat:.4f}&quot;)
+print(f&quot;自由度: {df}&quot;)
+print(f&quot;p値（両側）: {p_value:.6f}&quot;)
+
+# 有意性判定
+alpha = 0.05
+print(&quot;\n【有意水準5%での判定】&quot;)
+if p_value &lt; alpha:
+    print(f&quot;p値（{p_value:.6f}）&lt; 有意水準（{alpha}）&quot;)
+    print(&quot;→ 帰無仮説を棄却します&quot;)
+    print(&quot;→ 有意差があります（ダイエットプログラムによる体重減少が有意です）&quot;)
+else:
+    print(f&quot;p値（{p_value:.6f}）≥ 有意水準（{alpha}）&quot;)
+    print(&quot;→ 帰無仮説を採択します&quot;)
+    print(&quot;→ 有意差がありません&quot;)
+
+# 信頼区間の計算（参考情報）
+t_crit = stats.t.ppf(1 - alpha/2, df)
+se = np.std(differences, ddof=1) / np.sqrt(len(differences))
+ci_lower = np.mean(differences) - t_crit * se
+ci_upper = np.mean(differences) + t_crit * se
+
+print(f&quot;\n【参考情報】&quot;)
+print(f&quot;95%信頼区間: [{ci_lower:.4f}, {ci_upper:.4f}] kg&quot;)
+
+print(&quot;\n&quot; + &quot;=&quot;*60)
+EOF
+
+[stdout]: ============================================================
+対応のあるt検定（前後差の1標本t検定）
+============================================================
+
+【データ】
+介入前: [85.2 78.4 91.3 82.7 88.1 76.5 90.2 83.6 87.4 79.8]
+介入後: [79.3 74.1 87.8 79.5 84.2 74.3 86.7 77.8 84.1 77.2]
+
+前後差（前 - 後）: [5.9 4.3 3.5 3.2 3.9 2.2 3.5 5.8 3.3 2.6]
+
+【記述統計】
+サンプルサイズ: n = 10
+前後差の平均: 3.8200 kg
+前後差の標準偏差: 1.2227 kg
+前後差の標準誤差: 0.3867 kg
+
+【t検定の結果】
+帰無仮説: 平均前後差 = 0（介入前後で体重に変化がない）
+対立仮説: 平均前後差 ≠ 0（介入前後で体重に変化がある）
+
+t統計量: 9.8793
+自由度: 9
+p値（両側）: 0.000004
+
+【有意水準5%での判定】
+p値（0.000004）&lt; 有意水準（0.05）
+→ 帰無仮説を棄却します
+→ 有意差があります（ダイエットプログラムによる体重減少が有意です）
+
+【参考情報】
+95%信頼区間: [2.9453, 4.6947] kg
+
+============================================================
+[Claude]: ## 結果まとめ
+
+### 対応のあるt検定の結果
+
+| 項目 | 値 |
+|------|-----|
+| **t統計量** | **9.8793** |
+| **自由度** | **9** |
+| **p値（両側）** | **0.000004** |
+
+### 有意水準5%での判定
+
+✅ **有意差あり**
+
+- p値（0.000004）&lt; 有意水準（0.05）のため、帰無仮説を**棄却**します
+- **ダイエットプログラムによる体重減少は統計的に有意です**
+
+### 詳細な解釈
+
+1. **前後差の統計**
+   - 平均体重減少：**3.82 kg**
+   - 減少の標準偏差：1.22 kg
+   - 参加者全員が体重減少を達成（差の範囲：2.2～5.9 kg）
+
+2. **検定統計量**
+   - t = 9.88（非常に大きな値）
+   - 自由度 = 9（n-1 = 10-1）
+
+3. **結論**
+   - 極めて小さいp値（0.000004）は、観測された体重減少がほぼ確実に介入プログラムの効果であることを示しています
+   - ダイエットプログラムは**高い有意性をもって有効**と言えます</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+<h2>問題 5: ピアソン相関係数と有意性検定 <small>[相関]</small></h2>
+<h3>プロンプト</h3>
+<div class="prompt">2変数の関連を調べました。ピアソン積率相関係数を求め、
+t検定により有意水準5%で相関の有意性を判定してください（両側）。
+
+x: 3.7, 8.2, 1.5, 9.4, 2.8, 7.1, 4.6, 6.3, 5.9, 0.5
+y: 3.2, 7.1, 2.4, 8.8, 4.3, 6.5, 9.1, 3.7, 7.6, 5.9</div>
+<h3>正解</h3>
+<div class="correct">r≈0.560, p≈0.092, 有意な相関なし（α=0.05）<br><small>r=0.560, df=8, t=r√8/√(1-r²)≈1.883, p≈0.092 &gt; 0.05 → 有意差なし</small></div>
+
+<h3>モード1: ツールなし</h3>
+<div class="answer"># ピアソン積率相関係数と有意性検定
+
+## 1. 基本統計量の計算
+
+**データ:**
+- n = 10
+- x: 3.7, 8.2, 1.5, 9.4, 2.8, 7.1, 4.6, 6.3, 5.9, 0.5
+- y: 3.2, 7.1, 2.4, 8.8, 4.3, 6.5, 9.1, 3.7, 7.6, 5.9
+
+| 統計量 | 値 |
+|--------|------|
+| Σx | 50.0 |
+| Σy | 58.6 |
+| x̄ | 5.00 |
+| ȳ | 5.86 |
+| Σ(x - x̄)² | 87.40 |
+| Σ(y - ȳ)² | 78.04 |
+| Σ(x - x̄)(y - ȳ) | 20.46 |
+
+## 2. ピアソン積率相関係数
+
+$$r = \frac{\sum(x - \bar{x})(y - \bar{y})}{\sqrt{\sum(x - \bar{x})^2 \sum(y - \bar{y})^2}}$$
+
+$$r = \frac{20.46}{\sqrt{87.40 \times 78.04}} = \frac{20.46}{\sqrt{6,816.70}} = \frac{20.46}{82.56}$$
+
+$$\boxed{r = 0.248}$$
+
+## 3. t検定による有意性判定
+
+**帰無仮説 H₀:** ρ = 0（相関がない）  
+**対立仮説 H₁:** ρ ≠ 0（相関がある）
+
+**検定統計量:**
+$$t = r\sqrt{\frac{n-2}{1-r^2}} = 0.248\sqrt{\frac{10-2}{1-0.248^2}}$$
+
+$$t = 0.248\sqrt{\frac{8}{1-0.0615}} = 0.248\sqrt{\frac{8}{0.9385}}$$
+
+$$t = 0.248 \times 2.921 = \boxed{0.725}$$
+
+**自由度:** df = n - 2 = 8
+
+**臨界値（両側、α = 0.05）:** t₀.₀₂₅(8) = **2.306**
+
+## 4. 判定結果
+
+| 項目 | 結果 |
+|------|------|
+| 相関係数 | r = 0.248 |
+| t統計量 | t = 0.725 |
+| 臨界値 | 2.306 |
+| 判定 | **有意でない** |
+
+**結論:** |t| = 0.725 &lt; 2.306 であるため、有意水準5%において、**相関は有意ではありません**。つまり、xとyの間に統計的に有意な相関関係があるとは言えません。</div>
+<p class="verdict-ng">判定: ✗ 不正解</p>
+
+<h3>モード2: Code Execution Tool あり</h3>
+<div class="answer">[Claude]: ピアソン積率相関係数を求め、t検定で相関の有意性を判定します。
+[実行コード]:
+python3 &lt;&lt; &#x27;EOF&#x27;
+import numpy as np
+from scipy import stats
+
+# データ
+x = np.array([3.7, 8.2, 1.5, 9.4, 2.8, 7.1, 4.6, 6.3, 5.9, 0.5])
+y = np.array([3.2, 7.1, 2.4, 8.8, 4.3, 6.5, 9.1, 3.7, 7.6, 5.9])
+
+n = len(x)
+print(&quot;=&quot; * 60)
+print(&quot;ピアソン積率相関係数とt検定&quot;)
+print(&quot;=&quot; * 60)
+print(f&quot;\nサンプルサイズ: n = {n}&quot;)
+print(f&quot;\nデータ:&quot;)
+print(f&quot;x: {x}&quot;)
+print(f&quot;y: {y}&quot;)
+
+# ピアソン積率相関係数の計算
+r = np.corrcoef(x, y)[0, 1]
+print(f&quot;\n【相関係数】&quot;)
+print(f&quot;ピアソン積率相関係数 r = {r:.6f}&quot;)
+
+# t統計量の計算
+# t = r * sqrt(n - 2) / sqrt(1 - r^2)
+t_statistic = r * np.sqrt(n - 2) / np.sqrt(1 - r**2)
+print(f&quot;\n【t検定】&quot;)
+print(f&quot;t統計量 = {t_statistic:.6f}&quot;)
+
+# 自由度
+df = n - 2
+print(f&quot;自由度 df = {df}&quot;)
+
+# p値（両側検定）
+p_value = 2 * (1 - stats.t.cdf(abs(t_statistic), df))
+print(f&quot;p値（両側） = {p_value:.6f}&quot;)
+
+# 有意水準5%での判定
+alpha = 0.05
+print(f&quot;\n【有意性判定（有意水準α = {alpha}）】&quot;)
+if p_value &lt; alpha:
+    print(f&quot;p値 = {p_value:.6f} &lt; {alpha}&quot;)
+    print(&quot;→ 相関は統計的に有意である（帰無仮説を棄却）&quot;)
+    print(&quot;→ 2つの変数の間に有意な相関関係がある&quot;)
+else:
+    print(f&quot;p値 = {p_value:.6f} ≥ {alpha}&quot;)
+    print(&quot;→ 相関は統計的に有意でない（帰無仮説を採択）&quot;)
+    print(&quot;→ 2つの変数の間に有意な相関関係があるとは言えない&quot;)
+
+# 参考: 臨界値
+t_critical = stats.t.ppf(1 - alpha/2, df)
+print(f&quot;\n【参考】&quot;)
+print(f&quot;臨界値（両側α = {alpha}）: t_c = ±{t_critical:.4f}&quot;)
+print(f&quot;|t統計量| = {abs(t_statistic):.6f} &quot;, end=&quot;&quot;)
+if abs(t_statistic) &gt; t_critical:
+    print(f&quot;&gt; {t_critical:.4f} → 棄却域に入る&quot;)
+else:
+    print(f&quot;≤ {t_critical:.4f} → 採択域に入る&quot;)
+
+EOF
+
+[stdout]: ============================================================
+ピアソン積率相関係数とt検定
+============================================================
+
+サンプルサイズ: n = 10
+
+データ:
+x: [3.7 8.2 1.5 9.4 2.8 7.1 4.6 6.3 5.9 0.5]
+y: [3.2 7.1 2.4 8.8 4.3 6.5 9.1 3.7 7.6 5.9]
+
+【相関係数】
+ピアソン積率相関係数 r = 0.559784
+
+【t検定】
+t統計量 = 1.910732
+自由度 df = 8
+p値（両側） = 0.092427
+
+【有意性判定（有意水準α = 0.05）】
+p値 = 0.092427 ≥ 0.05
+→ 相関は統計的に有意でない（帰無仮説を採択）
+→ 2つの変数の間に有意な相関関係があるとは言えない
+
+【参考】
+臨界値（両側α = 0.05）: t_c = ±2.3060
+|t統計量| = 1.910732 ≤ 2.3060 → 採択域に入る
+[Claude]: ## 結果まとめ
+
+### **ピアソン積率相関係数**
+- **r = 0.5598**（中程度の正の相関）
+
+### **t検定の結果**
+- **t統計量 = 1.9107**
+- **自由度 = 8**
+- **p値（両側） = 0.0924**
+- **臨界値（α = 0.05） = ±2.3060**
+
+### **有意性の判定**
+**結論：相関は統計的に有意でない**
+
+p値（0.0924）が有意水準（0.05）より大きいため、帰無仮説（相関係数=0）を採択します。
+
+また、|t統計量|（1.9107） &lt; 臨界値（2.3060）であるため、t統計量は採択域に入っており、この結果を支持しています。
+
+**つまり**、2つの変数の間には中程度の正の相関が見られますが、このサンプルサイズ（n=10）では、この相関関係が統計的に有意であるとは言えません。</div>
+<p class="verdict-ok">判定: ○ 正解</p>
+
+
+<h2>まとめ: 正誤一覧</h2>
+<table>
+  <tr>
+    <th>#</th><th class="title">問題</th><th>カテゴリ</th>
+    <th>Haiku<br>ツールなし</th><th>Haiku<br>ツールあり</th>
+  </tr>
+    <tr>
+    <td>1</td>
+    <td class="title">実数15個の算術平均</td>
+    <td>基本統計</td>
+    <td class="ok">○</td>
+    <td class="ok">○</td>
+  </tr>
+
+  <tr>
+    <td>2</td>
+    <td class="title">標本標準偏差（8個）</td>
+    <td>基本統計</td>
+    <td class="ok">○</td>
+    <td class="ok">○</td>
+  </tr>
+
+  <tr>
+    <td>3</td>
+    <td class="title">対応なし2標本t検定（有意差なし）</td>
+    <td>t検定</td>
+    <td class="ng">✗</td>
+    <td class="ok">○</td>
+  </tr>
+
+  <tr>
+    <td>4</td>
+    <td class="title">対応あり1標本t検定（有意差あり）</td>
+    <td>t検定</td>
+    <td class="ng">✗</td>
+    <td class="ok">○</td>
+  </tr>
+
+  <tr>
+    <td>5</td>
+    <td class="title">ピアソン相関係数と有意性検定</td>
+    <td>相関</td>
+    <td class="ng">✗</td>
+    <td class="ok">○</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="score">正解数</td>
+    <td class="score">2/5</td>
+    <td class="score">5/5</td>
+  </tr>
+</table>
+</body>
+</html>
